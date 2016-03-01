@@ -15,6 +15,8 @@ cd FloatingModelNames
 gazebo shapes.world
 ~~~
 
+Video: https://www.youtube.com/watch?v=rsftOnKI4q4
+
 # TODO
 
 * Make plugin customizable (color, size, position)
