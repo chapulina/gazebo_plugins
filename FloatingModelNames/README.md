@@ -1,20 +1,21 @@
 # BUILD
--------
 
+~~~
 cd FloatingModelNames
 mkdir build
 cd build
 cmake ..
 make
+~~~
 
 # USE
------
 
+~~~
 cd FloatingModelNames
 gazebo shapes.world
+~~~
 
 # TODO
-------
 
 * Make plugin customizable (color, size, position)
 
