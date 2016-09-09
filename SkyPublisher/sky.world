@@ -1,0 +1,32 @@
+<sdf version="1.4">
+  <world name="default">
+    <!-- Gravity -->
+    <physics type="ode">
+      <gravity>0 0 -1.6350</gravity> <!-- 1/6 of 9.80665 -->
+    </physics>
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A hightmap plane -->
+    <include>
+      <uri>model://lunar_tranquillitatis_pit</uri>
+    </include>
+    <include>
+      <uri>model://pioneer2dx</uri>
+    </include>
+    <scene>
+      <ambient>0.4 0.4 0.4 1.0</ambient>
+      <background>0.1 0.1 0.1 1</background>
+      <grid>false</grid>
+      <sky>
+        <time>13</time>
+        <sunrise>12</sunrise>
+        <sunset>12</sunset>
+        <clouds>
+          <humidity>0</humidity>
+        </clouds>
+      </sky>
+   </scene>
+  </world>
+</sdf>
