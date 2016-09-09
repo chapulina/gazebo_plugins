@@ -1,0 +1,23 @@
+Gazebo Sky Publisher
+
+===================
+Build Instructions
+===================
+
+ * From this directory:
+
+  $ mkdir build
+  $ cd build
+  $ cmake ..
+  $ make
+
+
+===================
+Execute Instructions
+===================
+
+ * Launch gazebo as usual then from the build directory above:
+
+  $ ./skypublisher
+
+
