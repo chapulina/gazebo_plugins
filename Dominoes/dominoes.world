@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+
+    <gui>
+      <plugin name="dominoes" filename="libDominoesPlugin.so">
+        <topic>~/timer_control_1</topic>
+        <pos>10 10</pos>
+        <size>1 1</size>
+      </plugin>
+    </gui>
+
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+  </world>
+</sdf>
