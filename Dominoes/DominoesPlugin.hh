@@ -54,6 +54,7 @@ namespace gazebo
 
     /// \brief Node used to establish communication with gzserver.
     private: transport::NodePtr node;
+    private: transport::PublisherPtr factoryPub;
 
     private: QDoubleSpinBox *heightSpin;
     private: QDoubleSpinBox *widthSpin;
