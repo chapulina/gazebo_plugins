@@ -36,24 +36,27 @@ GZ_REGISTER_GUI_PLUGIN(DominoesPlugin)
 DominoesPlugin::DominoesPlugin()
   : GUIPlugin()
 {
-  // Set the frame background and foreground colors
-  this->setStyleSheet(
-      "QFrame {"
-        "background-color : rgba(255, 255, 255, 255);"
-        "color : black;"
-        "font-size: 12px;"
-      "}");
-
   // Size
   this->heightSpin = new QDoubleSpinBox();
+  this->heightSpin->setValue(0.048);
+  this->heightSpin->setDecimals(3);
+
   this->widthSpin = new QDoubleSpinBox();
+  this->widthSpin->setValue(0.024);
+  this->widthSpin->setDecimals(3);
+
   this->depthSpin = new QDoubleSpinBox();
+  this->depthSpin->setValue(0.007);
+  this->depthSpin->setDecimals(3);
 
   // Density
   this->densitySpin = new QDoubleSpinBox();
+  this->densitySpin->setValue(721);
 
   // Distance
   this->distanceSpin = new QDoubleSpinBox();
+  this->distanceSpin->setValue(0.04);
+  this->heightSpin->setDecimals(3);
 
   // Color
   auto colorButton = new QPushButton();
@@ -69,9 +72,9 @@ DominoesPlugin::DominoesPlugin()
   frameLayout->addWidget(new QLabel(tr("Depth")), 2, 0);
   frameLayout->addWidget(this->depthSpin, 2, 1);
   frameLayout->addWidget(new QLabel(tr("Distance")), 3, 0);
-  frameLayout->addWidget(this->depthSpin, 3, 1);
+  frameLayout->addWidget(this->distanceSpin, 3, 1);
   frameLayout->addWidget(new QLabel(tr("Density")), 4, 0);
-  frameLayout->addWidget(this->depthSpin, 4, 1);
+  frameLayout->addWidget(this->densitySpin, 4, 1);
 
   // Create the main layout
   QHBoxLayout *mainLayout = new QHBoxLayout;
@@ -90,11 +93,16 @@ DominoesPlugin::DominoesPlugin()
   mainLayout->setContentsMargins(0, 0, 0, 0);
 
   this->setLayout(mainLayout);
+  this->resize(200, 100);
 
   gui::MouseEventHandler::Instance()->AddMoveFilter("dominoes",
       std::bind(&DominoesPlugin::OnMouseMove, this, std::placeholders::_1));
 
   this->camera = gui::get_active_camera();
+
+  this->node = transport::NodePtr(new transport::Node());
+  this->node->Init();
+  this->factoryPub = this->node->Advertise<msgs::Factory>("/gazebo/default/factory");
 }
 
 /////////////////////////////////////////////////
@@ -121,8 +129,63 @@ bool DominoesPlugin::OnMouseMove(const common::MouseEvent &_event)
   {
     return false;
   }
+  auto height = this->heightSpin->value();
+  intersection.Z() += height * 0.5;
 
-std::cout << intersection << std::endl;
+  // Distance
+  auto distance = this->distanceSpin->value();
+
+  static ignition::math::Vector3d previousIntersection = intersection;
+
+  if ((intersection - previousIntersection).Length() < distance)
+    return true;
+
+  // Inertia
+  auto depth = this->depthSpin->value();
+  auto width = this->widthSpin->value();
+  auto density = this->densitySpin->value();
+
+  auto mass = density * height * width * depth;
+
+  static int count = 0;
+
+  msgs::Factory msg;
+  std::ostringstream newModelStr;
+
+  newModelStr << "<sdf version='" << SDF_VERSION << "'>"
+    << "<model name ='domino_" << ++count << "'>"
+    << "<pose>" << intersection << " 0 0 0</pose>"
+    << "<link name ='link'>"
+    << "  <inertial>"
+    << "    <mass>" << mass << "</mass>"
+    << "    <inertia>"
+    << "      <ixx>" << mass/12 * (width + height) << "</ixx>"
+    << "      <iyy>" << mass/12 * (depth + height) << "</iyy>"
+    << "      <izz>" << mass/12 * (width + depth) << "</izz>"
+    << "    </inertia>"
+    << "  </inertial>"
+    << "  <collision name='collision'>"
+    << "    <geometry>"
+    << "      <box>"
+    << "        <size>" << depth << " " << width << " " << height << "</size>"
+    << "      </box>"
+    << "    </geometry>"
+    << "  </collision>"
+    << "  <visual name='visual'>"
+    << "    <geometry>"
+    << "      <box>"
+    << "        <size>" << depth << " " << width << " " << height << "</size>"
+    << "      </box>"
+    << "    </geometry>"
+    << "  </visual>"
+    << "</link>"
+    << "</model>"
+    << "</sdf>";
+
+  msg.set_sdf(newModelStr.str());
+  this->factoryPub->Publish(msg);
+
+  previousIntersection = intersection;
 
   return true;
 
