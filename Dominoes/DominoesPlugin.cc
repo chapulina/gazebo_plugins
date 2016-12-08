@@ -22,9 +22,10 @@
 
 #include <sstream>
 #include <ignition/math/Vector3.hh>
+#include <gazebo/gui/Conversions.hh>
+#include <gazebo/gui/MouseEventHandler.hh>
 #include <gazebo/rendering/Scene.hh>
 #include <gazebo/rendering/UserCamera.hh>
-#include <gazebo/gui/MouseEventHandler.hh>
 #include "DominoesPlugin.hh"
 
 using namespace gazebo;
@@ -60,7 +61,7 @@ DominoesPlugin::DominoesPlugin()
 
   // Color
   auto colorButton = new QPushButton();
-  auto colorDialog = new QColorDialog();
+  this->colorDialog = new QColorDialog();
   this->connect(colorButton, SIGNAL(clicked()), colorDialog, SLOT(open()));
 
   // Layout
@@ -75,6 +76,8 @@ DominoesPlugin::DominoesPlugin()
   frameLayout->addWidget(this->distanceSpin, 3, 1);
   frameLayout->addWidget(new QLabel(tr("Density")), 4, 0);
   frameLayout->addWidget(this->densitySpin, 4, 1);
+  frameLayout->addWidget(new QLabel(tr("Color")), 5, 0);
+  frameLayout->addWidget(colorButton, 5, 1);
 
   // Create the main layout
   QHBoxLayout *mainLayout = new QHBoxLayout;
@@ -93,7 +96,7 @@ DominoesPlugin::DominoesPlugin()
   mainLayout->setContentsMargins(0, 0, 0, 0);
 
   this->setLayout(mainLayout);
-  this->resize(200, 100);
+  this->resize(250, 100);
 
   gui::MouseEventHandler::Instance()->AddMoveFilter("dominoes",
       std::bind(&DominoesPlugin::OnMouseMove, this, std::placeholders::_1));
@@ -140,12 +143,20 @@ bool DominoesPlugin::OnMouseMove(const common::MouseEvent &_event)
   if ((intersection - previousIntersection).Length() < distance)
     return true;
 
+  // Direction
+  auto dir = (intersection - previousIntersection).Normalize();
+
+  double yaw = atan2(dir.Y(), dir.X());
+
   // Inertia
   auto depth = this->depthSpin->value();
   auto width = this->widthSpin->value();
   auto density = this->densitySpin->value();
 
   auto mass = density * height * width * depth;
+
+  // Color
+  auto color = gui::Conversions::Convert(this->colorDialog->selectedColor());
 
   static int count = 0;
 
@@ -154,14 +165,14 @@ bool DominoesPlugin::OnMouseMove(const common::MouseEvent &_event)
 
   newModelStr << "<sdf version='" << SDF_VERSION << "'>"
     << "<model name ='domino_" << ++count << "'>"
-    << "<pose>" << intersection << " 0 0 0</pose>"
+    << "<pose>" << previousIntersection << " 0 0 " << yaw << "</pose>"
     << "<link name ='link'>"
     << "  <inertial>"
     << "    <mass>" << mass << "</mass>"
     << "    <inertia>"
-    << "      <ixx>" << mass/12 * (width + height) << "</ixx>"
-    << "      <iyy>" << mass/12 * (depth + height) << "</iyy>"
-    << "      <izz>" << mass/12 * (width + depth) << "</izz>"
+    << "      <ixx>" << mass/12 * (width*width + height*height) << "</ixx>"
+    << "      <iyy>" << mass/12 * (depth*depth + height*height) << "</iyy>"
+    << "      <izz>" << mass/12 * (width*width + depth*depth) << "</izz>"
     << "    </inertia>"
     << "  </inertial>"
     << "  <collision name='collision'>"
@@ -177,6 +188,9 @@ bool DominoesPlugin::OnMouseMove(const common::MouseEvent &_event)
     << "        <size>" << depth << " " << width << " " << height << "</size>"
     << "      </box>"
     << "    </geometry>"
+    << "    <material>"
+    << "      <ambient>" << color << "</ambient>"
+    << "    </material>"
     << "  </visual>"
     << "</link>"
     << "</model>"

@@ -47,11 +47,6 @@ namespace gazebo
     /// \brief
     private: bool OnMouseMove(const common::MouseEvent &_event);
 
-    private: ignition::math::Vector3d size;
-    private: double density;
-    private: double distance;
-    private: common::Color color;
-
     /// \brief Node used to establish communication with gzserver.
     private: transport::NodePtr node;
     private: transport::PublisherPtr factoryPub;
@@ -61,6 +56,7 @@ namespace gazebo
     private: QDoubleSpinBox *depthSpin;
     private: QDoubleSpinBox *densitySpin;
     private: QDoubleSpinBox *distanceSpin;
+    private: QColorDialog *colorDialog;
     private: rendering::UserCameraPtr camera;
   };
 }
