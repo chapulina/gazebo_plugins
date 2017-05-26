@@ -15,3 +15,6 @@ cd build
 gazebo ../shapes.world
 ~~~
 
+# SEE
+
+![random](https://bitbucket.org/chapulina/gazebo_plugins/raw/default/setstaticpose.gif)
