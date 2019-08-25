@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
+project(Dominoes)
+
 find_package (Qt4)
 find_package(Protobuf REQUIRED)
 find_package(gazebo REQUIRED)
